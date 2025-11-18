@@ -32,6 +32,8 @@ app.set('trust proxy', 1);
 app.use((req, res, next) => {
   const isHttps = req.headers['x-forwarded-proto'] === 'https';
   const isProduction = process.env.NODE_ENV === 'production';
+
+  console.log(isHttps, isProduction)
   
   if (!isHttps && isProduction) {
     console.log(`🔀 Protocolo HTTP detectado - Método: ${req.method}`);
