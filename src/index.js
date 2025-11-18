@@ -25,7 +25,21 @@ try{
 dotenv.config({ path: './env/.env' });
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(express.json());
+
+// Middleware para loggear todas las peticiones
+app.use((req, res, next) => {
+  console.log('📨 Petición recibida:', {
+    method: req.method,
+    url: req.url,
+    originalUrl: req.originalUrl,
+    headers: req.headers,
+    ip: req.ip,
+    timestamp: new Date().toISOString()
+  });
+  next();
+});
 
 app.use(cors(corsOptions));
 
@@ -36,6 +50,11 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
+app.post('/prueba', (req, res) => {
+  console.log('✅ Petición POST recibida correctamente');
+  res.json({ message: 'Funciona!' });
+});
+
 app.use('/email', emailRoutes);
 
 app.use('/usuario', usuarioRoutes);
@@ -43,6 +62,25 @@ app.use('/usuario', usuarioRoutes);
 app.use('/admin', adminRoutes);
 
 app.use('/auth', authRoutes);
+
+// ✅ MIDDLEWARE PARA RUTAS NO ENCONTRADAS (SOLUCIÓN)
+app.use((req, res, next) => {
+  res.status(404).json({ 
+    error: 'Ruta no encontrada',
+    path: req.originalUrl,
+    method: req.method,
+    message: `No se encontró la ruta ${req.method} ${req.originalUrl}`
+  });
+});
+
+// Manejo de errores global
+app.use((error, req, res, next) => {
+  console.error('Error global:', error);
+  res.status(500).json({
+    error: 'Error interno del servidor',
+    message: error.message
+  });
+});
 
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto: ${PORT}`)
