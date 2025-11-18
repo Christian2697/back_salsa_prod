@@ -12,7 +12,7 @@ export const corsOptions = {
         const allowedOrigins = [
             "http://192.168.100.13:5173",
             'http://localhost:5173',
-            'https://backsalsaprod-production.up.railway.app' // Reemplaza con tu URL real
+            'https://frontsalsaprod-production.up.railway.app' // Reemplaza con tu URL real
         ];
 
         // Permitir requests sin origin (como Postman, curl)
