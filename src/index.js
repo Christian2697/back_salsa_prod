@@ -32,8 +32,9 @@ app.use(cors(corsOptions));
 app.use(cookieParser());
 
 app.get('/', (req, res) => {
-    res.send('Hello World!')
-})
+    console.log('Hello');
+    res.send('Hello World!');
+});
 
 app.use('/email', emailRoutes);
 
