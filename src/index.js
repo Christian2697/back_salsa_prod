@@ -28,17 +28,25 @@ dotenv.config({ path: './env/.env' });
 const app = express();
 app.set('trust proxy', 1);
 
-// Middleware para evitar redirecciones que cambian POST a GET
+// Middleware para manejo inteligente de protocolo
 app.use((req, res, next) => {
-    // Si es HTTP y estamos en producción, haz la redirección manteniendo el método
-    if (req.headers['x-forwarded-proto'] !== 'https' && process.env.NODE_ENV === 'production') {
-        if (req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE') {
-            // Para métodos que no deben cambiar, no redirecciones automáticamente
-            return next();
-        }
-        return res.redirect(301, `https://${req.headers.host}${req.url}`);
+  const isHttps = req.headers['x-forwarded-proto'] === 'https';
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  if (!isHttps && isProduction) {
+    console.log(`🔀 Protocolo HTTP detectado - Método: ${req.method}`);
+    
+    if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+      // Para métodos que envían datos, manejamos sin redirección
+      console.log('📝 Preservando método', req.method, 'sin redirección');
+      return next();
+    } else {
+      // Para GET, DELETE, etc. redireccionar normalmente
+      console.log('🔄 Redireccionando a HTTPS para método', req.method);
+      return res.redirect(308, `https://${req.headers.host}${req.url}`);
     }
-    next();
+  }
+  next();
 });
 
 // Middleware de logging para DEBUG
