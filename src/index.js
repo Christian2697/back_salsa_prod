@@ -52,21 +52,21 @@ app.use((req, res, next) => {
 });
 
 // Middleware de logging para DEBUG
-app.use((req, res, next) => {
-    console.log('🔍 Petición recibida:', {
-        method: req.method,
-        originalMethod: req.headers['x-original-method'], // Método original
-        url: req.url,
-        originalUrl: req.originalUrl,
-        protocol: req.protocol,
-        'x-forwarded-proto': req.headers['x-forwarded-proto'],
-        'x-forwarded-method': req.headers['x-forwarded-method'],
-        host: req.headers.host,
-        'user-agent': req.headers['user-agent'],
-        timestamp: new Date().toISOString()
-    });
-    next();
-});
+// app.use((req, res, next) => {
+//     console.log('🔍 Petición recibida:', {
+//         method: req.method,
+//         originalMethod: req.headers['x-original-method'], // Método original
+//         url: req.url,
+//         originalUrl: req.originalUrl,
+//         protocol: req.protocol,
+//         'x-forwarded-proto': req.headers['x-forwarded-proto'],
+//         'x-forwarded-method': req.headers['x-forwarded-method'],
+//         host: req.headers.host,
+//         'user-agent': req.headers['user-agent'],
+//         timestamp: new Date().toISOString()
+//     });
+//     next();
+// });
 
 app.use(express.json());
 

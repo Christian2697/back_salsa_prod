@@ -82,7 +82,7 @@ const Auth = {
                 const hashed = await bcrypt.hash(password, salt);
                 try {
                     const id = await Userlog.create(username, hashed);
-                    if (id === 'Error al tratar de crear el usuario') {
+                    if (id === 'Error al tratar de crear el usuario' || id === 'Ya existe un usuario con ese username') {
                         console.log(id);
                         throw new Error('Error al tratar de crear el usuario');
                     } else {

@@ -100,8 +100,9 @@ const Userlog = {
 
             }
         } catch (error) {
-            console.error('Error :( ', error)
-            const result = error.message
+            console.error('Error :( ', error);
+            console.error(error.message);
+            const result = error.message !== 'Error al tratar de crear el usuario' && error.message !== 'Ya existe un usuario con ese username' ? 'Error al tratar de crear el usuario': error.message;
             return result
         }
     },
