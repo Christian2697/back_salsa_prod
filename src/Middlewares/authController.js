@@ -46,7 +46,7 @@ const Auth = {
                     res.status(200)
                         .cookie('access_token', signed, {
                             httpOnly: true, //la cookie sólo se puede acceder en el servidor
-                            secure: process.env.NODE_ENV === 'production' ? true : false, // la cookie sólo se puede acceder en https
+                            secure: process.env.NODE_ENV === 'production' ? false : false, // la cookie sólo se puede acceder en https
                             sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax', // la cookie sólo se puede acceder desde el mismo dominio 'strict'
                             maxAge: 2 * 60 * 60 * 1000 // la cookie tiene un tiempo de validez de 2 horas
                         })
