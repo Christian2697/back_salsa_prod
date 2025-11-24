@@ -174,17 +174,12 @@ const Reserv = {
                 console.log('Filas afectadas: ', result.affectedRows);
                 console.log('ID de Reservación eliminada: ', id);
                 console.log('Reservación eliminada :(');
-                res.status(201).json({ mensaje: 'Reservación eliminada de la BD', result });
+                res.status(200).json({ mensaje: 'Reservación eliminada de la BD', result });
             } else {
                 console.log('No existe reservación con ID: ', id);
-                res.status(409).json({ error: 'Reservación no existe en la BD', resultReserv });
+                res.status(404).json({ error: 'Reservación no existe en la BD', resultReserv });
             }
 
-            const [result] = await sqlPool.execute(query, [id]);
-            console.log('Filas afectadas: ', result.affectedRows);
-            console.log('ID de Usuario eliminado: ', id);
-            console.log('Chanchito eliminado :(');
-            res.status(201).json({ mensaje: 'Eliminado de BD', result });
         } catch (error) {
             console.error('Error al eliminar reservación: ', error)
             res.status(500).json({ error: 'Error al eliminar reservación' });

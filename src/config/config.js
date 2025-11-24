@@ -11,6 +11,9 @@ export const corsOptions = {
     origin: function (origin, callback) {
         const allowedOrigins = [
             "http://192.168.100.13:5173",
+            "http://192.168.100.203",
+            "http://192.168.100.203:5173",
+            "http://192.168.100.202",
             'http://localhost:5173',
             'https://frontsalsaprod-production.up.railway.app' // Reemplaza con tu URL real
         ];

@@ -13,9 +13,9 @@ const secreto = process.env.SECRET;
 const signToken = usuario => jsonwebtoken.sign({ usuario }, secreto, { expiresIn: '2h' });
 
 const isAuthenticated = (req, res, next) => {
-    console.log(req.cookies, req.cookies?.access_token);
+    // console.log(req.cookies, req.cookies?.access_token);
     const token = req.cookies?.access_token;
-    console.log(token);
+    // console.log(token);
 
     if (!token) {
         console.error('No autorizado: Token no proporcionado :(')

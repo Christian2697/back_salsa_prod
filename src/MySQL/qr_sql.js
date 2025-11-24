@@ -11,8 +11,6 @@ const Qr = {
                 mensaje: 'El campo qrHash es requerido'
             });
         }
-        console.log(qrHash);
-        console.log(typeof qrHash);
 
         const query = `SELECT reservaciones.id_reservation, reservaciones.nameReservation, qr.qr_reservation, asistentes.name, asistentes.lastname, asistentes.email, eventos.event_name, mesas.numMesa, estados_pago.payStatus, qr.userAttend
                     FROM qr
@@ -25,7 +23,6 @@ const Qr = {
 
         try {
             const [result] = await sqlPool.execute(query, [qrHash.trim()]);
-            console.log(result)
             result.length > 0 ? console.log('QR encontrado \n ID de la reservación: ', result[0].id_reservation) 
             : console.log('No se encontraron resultados', result); 
             
@@ -47,8 +44,7 @@ const Qr = {
 
 
     listById: async (req, res) => {
-        const QRs = req.body
-        console.log(QRs)
+        const QRs = req.body;
         const query = `SELECT reservaciones.id_reservation, reservaciones.nameReservation, qr.qr_reservation, asistentes.name, asistentes.lastname, asistentes.email, eventos.event_name, mesas.numMesa, estados_pago.payStatus
                         FROM qr
                         LEFT JOIN reservaciones ON reservaciones.id_reservation = qr.id_reservation
@@ -61,7 +57,6 @@ const Qr = {
             const result = [];
             for (const QR of QRs) {
                 try {
-                    console.log(QR)
                     const [rows] = await sqlPool.execute(query, [QR]);
                     result.push(rows[0]);
                 } catch (error) {
@@ -69,7 +64,6 @@ const Qr = {
                     result.push(null);
                 }
             }
-            console.log(result)
             console.log('QR´s de Chanchitos encontrados :)')
             res.status(200).json({ mensaje: 'QRs encontrados', result })
         } catch (error) {
