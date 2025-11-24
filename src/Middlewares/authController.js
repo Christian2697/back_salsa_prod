@@ -16,6 +16,7 @@ const isAuthenticated = (req, res, next) => {
     const token = req.cookies?.access_token;
 
     if (!token) {
+        console.error('No autorizado: Token no proporcionado :(')
         return res.status(401).json({ error: 'Token no proporcionado', authenticated: false });
     }
 
@@ -129,6 +130,7 @@ const Auth = {
     },
 
     logout: (req, res) => {
+        console.log('Cerrando sesión de chanchito');
         res.status(200)
             .clearCookie('access_token')
             .json({
