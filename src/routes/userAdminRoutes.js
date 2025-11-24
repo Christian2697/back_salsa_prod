@@ -18,6 +18,7 @@ router.post('/recep-qr', Qr.listByQr);
 router.patch('/update-recep', Qr.update);
 
 router.post('/get-reserv', Reserv.list);
+router.delete('/reservation/:id_reservation', Reserv.destroy);
 
 
 export default router;

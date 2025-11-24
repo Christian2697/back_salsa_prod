@@ -229,7 +229,7 @@ const User = {
                     console.log('Chanchito ya existía :) ');
                     res.status(200).json({ mensaje: 'Ya existía en BD', result: { insertId: id_user, }, resultUser });
                 } else {
-                    
+
                     const [result] = await sqlPool.query(queryCreate, [name, lastname, email])
                     console.log('ID del usuario creado: ', result.insertId);
                     console.log('Chanchito creado :) ');
@@ -279,12 +279,19 @@ const User = {
         const id = req.params.id_user
         const query = `DELETE FROM asistentes
                         WHERE id_user = ?`
+        const queryUser = `SELECT * FROM asistentes WHERE id_user = ?`
         try {
-            const [result] = await sqlPool.execute(query, [id]);
-            console.log('Filas afectadas: ', result.affectedRows);
-            console.log('ID de Usuario eliminado: ', id);
-            console.log('Chanchito eliminado :(');
-            res.status(201).json({ mensaje: 'Usuario eliminado de la BD', result });
+            const [resultUser] = await sqlPool.query(queryUser, [id]);
+            if (resultUser.length >= 1) {
+                const [result] = await sqlPool.execute(query, [id]);
+                console.log('Filas afectadas: ', result.affectedRows);
+                console.log('ID de Usuario eliminado: ', id);
+                console.log('Chanchito eliminado :(');
+                res.status(201).json({ mensaje: 'Usuario eliminado de la BD', result });
+            } else {
+                console.log('No existen chanchitos con ID: ', id);
+                res.status(409).json({ error: 'Usuario no existe en la BD', resultUser });
+            }
         } catch (error) {
             console.error('Error al eliminar chanchito: ', error)
             res.status(500).json({ error: 'Error al eliminar usuario' });

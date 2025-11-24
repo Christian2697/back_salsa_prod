@@ -72,7 +72,7 @@ const Reserv = {
             const finalParams = [...queryParams, String(limit), String(offset)];
             const [result] = await sqlPool.execute(query, finalParams);
             console.log('Consultando reservaciones de Chanchitos :)');
-            
+
             const [countResult] = await sqlPool.execute(countQuery);
             console.log('Consultando total de reservaciones de Chanchitos :)');
 
@@ -166,7 +166,20 @@ const Reserv = {
         const id = req.params.id_reservation
         const query = `DELETE FROM reservaciones
                         WHERE id_reservation = ?`
+        const queryReserv = `SELECT * FROM reservaciones WHERE id_reservation = ?`
         try {
+            const [resultReserv] = await sqlPool.query(queryReserv, [id]);
+            if (resultReserv.length >= 1) {
+                const [result] = await sqlPool.execute(query, [id]);
+                console.log('Filas afectadas: ', result.affectedRows);
+                console.log('ID de Reservación eliminada: ', id);
+                console.log('Reservación eliminada :(');
+                res.status(201).json({ mensaje: 'Reservación eliminada de la BD', result });
+            } else {
+                console.log('No existe reservación con ID: ', id);
+                res.status(409).json({ error: 'Reservación no existe en la BD', resultReserv });
+            }
+
             const [result] = await sqlPool.execute(query, [id]);
             console.log('Filas afectadas: ', result.affectedRows);
             console.log('ID de Usuario eliminado: ', id);
