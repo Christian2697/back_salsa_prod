@@ -13,6 +13,7 @@ const secreto = process.env.SECRET;
 const signToken = usuario => jsonwebtoken.sign({ usuario }, secreto, { expiresIn: '2h' });
 
 const isAuthenticated = (req, res, next) => {
+    console.log(req.cookie, req.cookie.access_token);
     const token = req.cookies?.access_token;
 
     if (!token) {
