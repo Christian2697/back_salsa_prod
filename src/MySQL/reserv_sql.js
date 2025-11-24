@@ -65,7 +65,11 @@ const Reserv = {
 
         const countQuery = `
             SELECT COUNT(*) as total 
-            FROM reservaciones 
+            FROM reservaciones
+            LEFT JOIN eventos ON eventos.id_event = reservaciones.id_event
+            LEFT JOIN tipo_reservacion ON tipo_reservacion.id_typeReservation = reservaciones.id_typeReservation
+            LEFT JOIN mesas ON mesas.id_mesa = reservaciones.id_mesa
+            ${whereClause} 
         `;
 
         try {
@@ -73,7 +77,7 @@ const Reserv = {
             const [result] = await sqlPool.execute(query, finalParams);
             console.log('Consultando reservaciones de Chanchitos :)');
 
-            const [countResult] = await sqlPool.execute(countQuery);
+            const [countResult] = await sqlPool.execute(countQuery, queryParams);
             console.log('Consultando total de reservaciones de Chanchitos :)');
 
             const total = countResult[0].total;
