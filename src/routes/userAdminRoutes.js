@@ -15,8 +15,10 @@ router.post('/usersID', isAuthenticated, User.listById);
 router.put('/user/:id_user', validation(schemas.usuarios), isAuthenticated, User.update);
 router.delete('/user/:id_user', isAuthenticated, User.destroy);
 
-router.post('/recep-qr', Qr.listByQr);
-router.patch('/update-recep', Qr.update);
+router.post('/recep/search-qr', Qr.search);
+router.patch('/recep/update-qr', Qr.update);
+
+router.post('/reserv/list-qr', Qr.list);
 
 router.post('/get-reserv', Reserv.list);
 router.delete('/reservation/:id_reservation', Reserv.destroy);

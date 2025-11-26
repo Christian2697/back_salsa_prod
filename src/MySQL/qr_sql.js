@@ -2,7 +2,7 @@ import { sqlPool } from './connectionSQL.js'
 
 const Qr = {
 
-    listByQr: async (req, res) => {
+    search: async (req, res) => {
         const { qrHash } = req.body;
 
         // Validar que qrHash venga en el body
@@ -23,9 +23,9 @@ const Qr = {
 
         try {
             const [result] = await sqlPool.execute(query, [qrHash.trim()]);
-            result.length > 0 ? console.log('QR encontrado \n ID de la reservación: ', result[0].id_reservation) 
-            : console.log('No se encontraron resultados', result); 
-            
+            result.length > 0 ? console.log('QR encontrado \n ID de la reservación: ', result[0].id_reservation)
+                : console.log('No se encontraron resultados', result);
+
 
             // Siempre devolver 200 con el array de resultados (puede estar vacío)
             res.status(200).json({
@@ -38,6 +38,112 @@ const Qr = {
             res.status(500).json({
                 mensaje: 'Error al procesar la consulta a la BD',
                 error: error.message
+            });
+        }
+    },
+
+    list: async (req, res) => {
+        const { page, limit, sortBy, sortOrder, event_name } = req.body;
+
+        if (page < 1 || limit < 1) {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'Los parámetros page y limit deben ser números válidos mayores a 0'
+            });
+        }
+
+        const sorterOrder = sortOrder ? sortOrder : 'ASC';
+
+        // const validSortColumns = ['id_qr', 'nameReservation', 'name', 'email'];
+        // const sanitizedSortBy = validSortColumns.includes(sortBy) ? sortBy : 'id_qr';
+        const sortMap = {
+            nameReservation: 'reservaciones.nameReservation',
+            name: 'asistentes.name',
+            email: 'asistentes.email'
+        };
+
+        const sanitizedSortBy = sortMap[sortBy] || 'qr.id_qr';
+
+        const validSortOrders = ['ASC', 'DESC'];
+        const sanitizedSortOrder = validSortOrders.includes(sorterOrder.toUpperCase()) ? sorterOrder.toUpperCase() : 'ASC';
+
+        const offset = (page - 1) * limit;
+
+        // Construir consultas dinámicas
+        let whereConditions = [];
+        let queryParams = [];
+
+        // Filtro por nombre de evento
+        if (event_name && event_name.length > 0) {
+            // event_name puede ser un array si se seleccionan múltiples filtros
+            const placeholders = event_name.map(() => '?').join(',');
+            whereConditions.push(`eventos.event_name IN (${placeholders})`);
+            queryParams.push(...event_name);
+        }
+
+        // if (typeReservation && typeReservation.length > 0) {
+        //     const placeholders = typeReservation.map(() => '?').join(',');
+        //     whereConditions.push(`tipo_reservacion.typeReservation IN (${placeholders})`);
+        //     queryParams.push(...typeReservation);
+        // }
+
+        // Construir la cláusula WHERE
+        const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+        const query = `
+            SELECT qr.id_qr, reservaciones.nameReservation, asistentes.name, asistentes.email, eventos.event_name, mesas.numMesa, qr.qr_reservation, metodo_pago.payMethod, estados_pago.payStatus
+            FROM qr
+            LEFT JOIN reservaciones ON reservaciones.id_reservation = qr.id_reservation
+            LEFT JOIN asistentes ON qr.id_user = asistentes.id_user
+            LEFT JOIN eventos ON eventos.id_event = reservaciones.id_event
+            LEFT JOIN mesas ON mesas.id_mesa = reservaciones.id_mesa
+            LEFT JOIN estados_pago ON estados_pago.id_payStatus = qr.id_payStatus
+            LEFT JOIN metodo_pago ON metodo_pago.id_payMethod = qr.id_payMethod
+            ${whereClause}
+            ORDER BY ${sanitizedSortBy} ${sanitizedSortOrder} LIMIT ? OFFSET ? ;`; // LIMIT ?, ? → primero OFFSET, luego LIMIT
+
+        const countQuery = `
+            SELECT COUNT(*) as total 
+            FROM qr
+            LEFT JOIN reservaciones ON reservaciones.id_reservation = qr.id_reservation
+            LEFT JOIN asistentes ON qr.id_user = asistentes.id_user
+            LEFT JOIN eventos ON eventos.id_event = reservaciones.id_event
+            LEFT JOIN mesas ON mesas.id_mesa = reservaciones.id_mesa
+            LEFT JOIN estados_pago ON estados_pago.id_payStatus = qr.id_payStatus
+            LEFT JOIN metodo_pago ON metodo_pago.id_payMethod = qr.id_payMethod
+            ${whereClause} 
+        `;
+
+        try {
+            const finalParams = [...queryParams, String(limit), String(offset)];
+            const [result] = await sqlPool.execute(query, finalParams);
+            console.log('Consultando reservaciones de Chanchitos :)');
+
+            const [countResult] = await sqlPool.execute(countQuery, queryParams);
+            console.log('Consultando total de reservaciones de Chanchitos :)');
+
+            const total = countResult[0].total;
+            const totalPages = Math.ceil(total / limit);
+
+            res.status(200).json({
+                success: true,
+                data: result,
+                pagination: {
+                    current: parseInt(page),
+                    totalPages: totalPages,
+                    total: total,
+                },
+                sorter: {
+                    sortBy: sanitizedSortBy,
+                    sortOrder: sanitizedSortOrder
+                }
+            });
+        } catch (error) {
+            console.error('Error al solicitar reservaciones de chanchitos: ', error)
+            res.status(500).json({
+                success: false,
+                mensaje: 'Error interno del servidor',
+                error: error
             });
         }
     },
