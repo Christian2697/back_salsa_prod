@@ -43,7 +43,9 @@ const Qr = {
     },
 
     searchList: async (req, res) => {
-        const { search, page, limit, sortBy, sortOrder, event_name } = req.body;
+        const { search, sortBy, sortOrder, event_name } = req.body;
+        const page = 1;
+        const limit = 5;
 
         if (!search || search.trim() === '') {
             return res.status(400).json({
@@ -363,9 +365,10 @@ const Qr = {
         const id = req.params.id_qr
         const query = `DELETE FROM qr
                         WHERE id_qr = ?`
+        const queryReserv = `SELECT * FROM qr WHERE id_qr = ?`
         try {
-            const [result] = await sqlPool.execute(query, [id]);
-            if (result.length >= 1) {
+            const [resultReserv] = await sqlPool.query(queryReserv, [id]);
+            if (resultReserv.length >= 1) {
                 const [result] = await sqlPool.execute(query, [id]);
                 console.log('Filas afectadas: ', result.affectedRows);
                 console.log('ID de Reservación eliminada: ', id);
@@ -373,7 +376,7 @@ const Qr = {
                 res.status(200).json({ mensaje: 'Reservación eliminada de la BD', result });
             } else {
                 console.log('No existe reservación con ID: ', id);
-                res.status(404).json({ error: 'Reservación no existe en la BD', result });
+                res.status(404).json({ error: 'Reservación no existe en la BD', resultReserv });
             }
         } catch (error) {
             console.error('Error al eliminar QR: ', error)
