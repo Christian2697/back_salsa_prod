@@ -10,7 +10,6 @@ console.log(originClient);
 export const corsOptions = {
     origin: function (origin, callback) {
         const allowedOrigins = [
-            "http://192.168.100.13:5173",
             "http://192.168.100.203",
             "http://192.168.100.203:5173",
             "http://192.168.100.202",

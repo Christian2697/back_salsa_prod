@@ -20,6 +20,7 @@ router.patch('/recep/update-qr', Qr.update);
 
 router.post('/reserv/list-qr', Qr.list);
 router.post('/reserv/search-qr', Qr.searchList);
+router.delete('/reserv/:id_qr', Qr.destroy);
 
 router.post('/get-reserv', Reserv.list);
 router.delete('/reservation/:id_reservation', Reserv.destroy);

@@ -360,17 +360,23 @@ const Qr = {
     },
 
     destroy: async (req, res) => {
-        const id = req.params.id_user
-        const query = `DELETE FROM asistentes
-                        WHERE id_user = ?`
+        const id = req.params.id_qr
+        const query = `DELETE FROM qr
+                        WHERE id_qr = ?`
         try {
             const [result] = await sqlPool.execute(query, [id]);
-            console.log('Filas afectadas: ', result.affectedRows);
-            console.log('ID de Usuario eliminado: ', id);
-            console.log('Chanchito eliminado :(');
-            res.status(201).json({ mensaje: 'Eliminado de BD', result });
+            if (result.length >= 1) {
+                const [result] = await sqlPool.execute(query, [id]);
+                console.log('Filas afectadas: ', result.affectedRows);
+                console.log('ID de Reservación eliminada: ', id);
+                console.log('Reservación eliminada :(');
+                res.status(200).json({ mensaje: 'Reservación eliminada de la BD', result });
+            } else {
+                console.log('No existe reservación con ID: ', id);
+                res.status(404).json({ error: 'Reservación no existe en la BD', result });
+            }
         } catch (error) {
-            console.error('Error al eliminar chanchito: ', error)
+            console.error('Error al eliminar QR: ', error)
             res.status(500).json({ error: 'Error interno del servidor' });
         }
     }
