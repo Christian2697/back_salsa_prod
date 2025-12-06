@@ -42,6 +42,114 @@ const Qr = {
         }
     },
 
+    searchList: async (req, res) => {
+        const { search, page, limit, sortBy, sortOrder, event_name } = req.body;
+
+        if (!search || search.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                error: 'El parámetro de búsqueda es requerido'
+            });
+        }
+
+        const sorterOrder = sortOrder ? sortOrder : 'ASC';
+
+        const sortMap = {
+            nameReservation: 'reservaciones.nameReservation',
+            name: 'asistentes.name',
+            email: 'asistentes.email'
+        };
+
+        const sanitizedSortBy = sortMap[sortBy] || 'qr.id_qr';
+
+        const validSortOrders = ['ASC', 'DESC'];
+        const sanitizedSortOrder = validSortOrders.includes(sorterOrder.toUpperCase()) ? sorterOrder.toUpperCase() : 'ASC';
+
+        const searchTerm = `%${search.trim()}%`;
+        const offset = (page - 1) * limit;
+
+        // Construir consultas dinámicas
+        let whereConditions = [];
+        let queryParams = [];
+
+        // Filtro por nombre de evento
+        if (event_name && event_name.length > 0) {
+            // event_name puede ser un array si se seleccionan múltiples filtros
+            const placeholders = event_name.map(() => '?').join(',');
+            whereConditions.push(`eventos.event_name IN (${placeholders})`);
+            queryParams.push(...event_name);
+        }
+
+        // Construir la cláusula WHERE
+        const whereClause = whereConditions.length > 0 ? `AND ${whereConditions.join(' AND ')}` : '';
+
+        try {
+            // Consulta principal con paginación
+            const query = `
+            SELECT qr.id_qr, reservaciones.nameReservation, asistentes.name, asistentes.email, eventos.event_name, mesas.numMesa, qr.qr_reservation, metodo_pago.payMethod, estados_pago.payStatus
+            FROM qr 
+            LEFT JOIN reservaciones ON reservaciones.id_reservation = qr.id_reservation
+            LEFT JOIN asistentes ON qr.id_user = asistentes.id_user
+            LEFT JOIN eventos ON eventos.id_event = reservaciones.id_event
+            LEFT JOIN mesas ON mesas.id_mesa = reservaciones.id_mesa
+            LEFT JOIN estados_pago ON estados_pago.id_payStatus = qr.id_payStatus
+            LEFT JOIN metodo_pago ON metodo_pago.id_payMethod = qr.id_payMethod
+            WHERE (reservaciones.nameReservation LIKE ?
+                OR asistentes.name LIKE ? 
+                OR asistentes.email LIKE ?)
+               ${whereClause}
+            ORDER BY ${sanitizedSortBy} ${sanitizedSortOrder}
+            LIMIT ? OFFSET ?
+        `;
+
+            // Consulta para el total de resultados
+            const countQuery = `
+            SELECT COUNT(*) as total 
+            FROM qr
+            LEFT JOIN reservaciones ON reservaciones.id_reservation = qr.id_reservation
+            LEFT JOIN asistentes ON qr.id_user = asistentes.id_user
+            LEFT JOIN eventos ON eventos.id_event = reservaciones.id_event
+            LEFT JOIN mesas ON mesas.id_mesa = reservaciones.id_mesa
+            LEFT JOIN estados_pago ON estados_pago.id_payStatus = qr.id_payStatus
+            LEFT JOIN metodo_pago ON metodo_pago.id_payMethod = qr.id_payMethod 
+            WHERE (reservaciones.nameReservation LIKE ?
+                OR asistentes.name LIKE ? 
+                OR asistentes.email LIKE ?) 
+               ${whereClause} 
+        `;
+
+            const baseSearchParams = [searchTerm, searchTerm, searchTerm];
+            const finalParams = [...baseSearchParams, ...queryParams, String(limit), String(offset)];
+            const [results] = await sqlPool.execute(query, finalParams);
+
+            const countQueryParams = [
+                ...baseSearchParams,  // searchTerm, searchTerm, searchTerm  
+                ...queryParams        // event_name values
+            ];
+            const [countResult] = await sqlPool.execute(countQuery, countQueryParams);
+
+            const total = countResult[0].total;
+            const totalPages = Math.ceil(total / limit);
+
+            res.json({
+                success: true,
+                data: results,
+                pagination: {
+                    currentPage: parseInt(page),
+                    totalPages: totalPages,
+                    total: total,
+                }
+            });
+
+        } catch (error) {
+            console.error('Error en la búsqueda paginada:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Error interno del servidor'
+            });
+        }
+    },
+
     list: async (req, res) => {
         const { page, limit, sortBy, sortOrder, event_name } = req.body;
 
@@ -142,8 +250,8 @@ const Qr = {
             console.error('Error al solicitar reservaciones de chanchitos: ', error)
             res.status(500).json({
                 success: false,
-                mensaje: 'Error interno del servidor',
-                error: error
+                error: 'Error interno del servidor',
+                mensaje: error
             });
         }
     },
@@ -210,8 +318,8 @@ const Qr = {
                     result.push(respuesta)
                 }
             } catch (error) {
-                console.error('Error al insertar consulta: ', error)
-                res.status(500).json({ error: 'Error al crear reservación' });
+                console.error('Error al vincular chanchitos a reservación :(', error)
+                res.status(500).json({ error: 'Error interno del servidor' });
             }
         }
         console.log('Chanchitos vinculados a reservación :) ')
@@ -245,8 +353,8 @@ const Qr = {
         } catch (error) {
             console.error(`Error con  ${qr}:`, error);
             res.status(500).json({
-                mensaje: 'Error al procesar la consulta a la BD',
-                error: error.message
+                error: 'Error al procesar la consulta a la BD',
+                mensaje: error.message
             });
         }
     },
@@ -263,7 +371,7 @@ const Qr = {
             res.status(201).json({ mensaje: 'Eliminado de BD', result });
         } catch (error) {
             console.error('Error al eliminar chanchito: ', error)
-            res.status(500).json({ error: 'Error al eliminar usuario' });
+            res.status(500).json({ error: 'Error interno del servidor' });
         }
     }
 }
