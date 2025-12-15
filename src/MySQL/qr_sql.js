@@ -98,7 +98,8 @@ const Qr = {
             LEFT JOIN metodo_pago ON metodo_pago.id_payMethod = qr.id_payMethod
             WHERE (reservaciones.nameReservation LIKE ?
                 OR asistentes.name LIKE ? 
-                OR asistentes.email LIKE ?)
+                OR asistentes.email LIKE ?
+                OR qr.qr_reservation LIKE ?)
                ${whereClause}
             ORDER BY ${sanitizedSortBy} ${sanitizedSortOrder}
             LIMIT ? OFFSET ?
@@ -116,11 +117,12 @@ const Qr = {
             LEFT JOIN metodo_pago ON metodo_pago.id_payMethod = qr.id_payMethod 
             WHERE (reservaciones.nameReservation LIKE ?
                 OR asistentes.name LIKE ? 
-                OR asistentes.email LIKE ?) 
+                OR asistentes.email LIKE ?
+                OR qr.qr_reservation LIKE ?) 
                ${whereClause} 
         `;
 
-            const baseSearchParams = [searchTerm, searchTerm, searchTerm];
+            const baseSearchParams = [searchTerm, searchTerm, searchTerm, searchTerm];
             const finalParams = [...baseSearchParams, ...queryParams, String(limit), String(offset)];
             const [results] = await sqlPool.execute(query, finalParams);
 

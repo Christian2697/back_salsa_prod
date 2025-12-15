@@ -13,9 +13,9 @@ const secreto = process.env.SECRET;
 const signToken = usuario => jsonwebtoken.sign({ usuario }, secreto, { expiresIn: '2h' });
 
 const isAuthenticated = (req, res, next) => {
-    // console.log(req.cookies, req.cookies?.access_token);
+    console.log(req.cookies);
     const token = req.cookies?.access_token;
-    // console.log(token);
+    console.log(token);
 
     if (!token) {
         console.error('No autorizado: Token no proporcionado :(')
@@ -50,7 +50,7 @@ const Auth = {
                         .cookie('access_token', signed, {
                             httpOnly: true, //la cookie sólo se puede acceder en el servidor
                             secure: process.env.NODE_ENV === 'production' ? true : false, // la cookie sólo se puede acceder en https
-                            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // la cookie sólo se puede acceder desde el mismo dominio 'strict'
+                            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'none', // la cookie sólo se puede acceder desde el mismo dominio 'strict'
                             maxAge: 2 * 60 * 60 * 1000 // la cookie tiene un tiempo de validez de 2 horas
                         })
                         .json({
